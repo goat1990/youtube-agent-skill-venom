@@ -3,6 +3,7 @@
 
     python3 swipe.py collected.json
     python3 swipe.py collected.json --min 2.0 --json
+    python3 swipe.py ytdlp.json        # the file `yt-dlp --flat-playlist -J <channel url>` writes
 
 Input is a list you collected - one object per video:
 
@@ -44,14 +45,55 @@ def classify(title):
     scored.sort(reverse=True)
     return scored[0][1] if scored else "Unclassified"
 
+VIEWS_TEXT = re.compile(r"^([\d.,]+)\s*(k|mil|m|mill|millones|millón|b)?$")
+
+def parse_views(v):
+    """Views as a number. Accepts 412000, "412,000", "412.000", "1.2M", "1,2 M", "900K", "45 mil".
+    None and empty count as 0, as before. Anything else unreadable returns None."""
+    if v is None or v == "": return 0.0
+    if isinstance(v, (int, float)): return float(v)
+    s = re.sub(r"\b(views|vistas|visualizaciones)\b", "", str(v).lower()).strip()
+    m = VIEWS_TEXT.match(s)
+    if not m: return None
+    num, unit = m.group(1), m.group(2)
+    if not unit: return float(re.sub(r"[.,]", "", num) or 0)
+    if "," in num and "." in num:  # the last separator is the decimal one
+        dec = max(num.rfind(","), num.rfind("."))
+        num = re.sub(r"[.,]", "", num[:dec]) + "." + num[dec + 1:]
+    num = num.replace(",", ".")
+    scale = {"k": 1e3, "mil": 1e3, "m": 1e6, "mill": 1e6, "millones": 1e6, "millón": 1e6, "b": 1e9}[unit]
+    try: return float(num) * scale
+    except ValueError: return None
+
+def normalize(rows):
+    """The pack's own list, {"videos": [...]}, or a yt-dlp file ({"entries": [...]} with view_count,
+    nested one level for a channel's tabs). Returns the rows and how many had unreadable views."""
+    def flatten(items, owner):
+        for r in items:
+            if not isinstance(r, dict): continue
+            if isinstance(r.get("entries"), list):
+                yield from flatten(r["entries"], r.get("channel") or r.get("uploader") or owner)
+            else:
+                yield r, owner
+    owner = None
+    if isinstance(rows, dict):
+        owner = rows.get("channel") or rows.get("uploader")
+        rows = rows.get("videos") or [rows]
+    out, unread = [], 0
+    for r, own in flatten(rows, owner):
+        raw = r["views"] if "views" in r else r.get("view_count")
+        n = parse_views(raw)
+        if n is None: unread += 1; continue
+        out.append(dict(r, views=n, channel=r.get("channel") or r.get("uploader") or own or "?"))
+    return out, unread
+
 def main():
     a = sys.argv[1:]
     as_json = "--json" in a; a = [x for x in a if x != "--json"]
     lo = float(a[a.index("--min") + 1]) if "--min" in a else 1.5
     files = [x for x in a if not x.startswith("--") and not re.match(r"^[\d.]+$", x)]
     if not files or not os.path.exists(files[0]): print(__doc__); sys.exit(1)
-    rows = json.load(open(files[0], encoding="utf-8"))
-    if isinstance(rows, dict): rows = rows.get("videos", [])
+    rows, unread = normalize(json.load(open(files[0], encoding="utf-8")))
     by = {}
     for r in rows: by.setdefault(r.get("channel", "?"), []).append(r)
     out, thin = [], []
@@ -68,12 +110,16 @@ def main():
                         "formula": classify(v.get("title", "")), "url": v.get("url", "")})
     out = [r for r in out if r["multiple"] >= lo]
     out.sort(key=lambda r: -r["multiple"])
-    if as_json: print(json.dumps({"outliers": out, "skipped_thin_channels": thin}, indent=1)); return
+    if as_json:
+        res = {"outliers": out, "skipped_thin_channels": thin}
+        if unread: res["skipped_unreadable_views"] = unread
+        print(json.dumps(res, indent=1)); return
     print(f"\n  {len(rows)} videos across {len(by)} channels, outliers at {lo}x or better\n")
     for r in out[:25]:
         print(f"    {r['multiple']:5.2f}x  {r['views']:>9,}  vs {r['median']:>9,} median   {r['channel'][:22]:<22} {r['title'][:52]}")
         print(f"            {r['formula']}")
     if not out: print("    nothing cleared the threshold - collect more per channel or lower --min")
+    if unread: print(f"\n  skipped {unread} video(s) whose view count could not be read")
     if thin:
         print(f"\n  skipped {len(thin)} channel(s) with under 4 videos collected - a median off one or")
         print( "  two videos is not a median: " + ", ".join(f"{c} ({n})" for c, n in thin[:6]))
