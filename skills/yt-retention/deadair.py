@@ -50,8 +50,11 @@ def load(path):
     raw = open(path, encoding="utf-8", errors="replace").read()
     if path.endswith(".json"):
         d = json.loads(raw)
-        segs = d.get("segments", d if isinstance(d, list) else [])
+        segs = d.get("segments", []) if isinstance(d, dict) else d  # whisper's dict, or a bare list
         return [(float(s["start"]), float(s["end"]), (s.get("text") or "").strip()) for s in segs]
+    # YouTube's own auto-caption file wraps each word in timing tags and repeats the previous line
+    # at the top of the next cue. Left alone, that hides fillers and doubles every sentence.
+    auto = re.search(r"<\d\d:\d\d:\d\d\.\d{3}>", raw) is not None
     cues, cur = [], None
     for line in raw.splitlines():
         m = re.match(r"\s*(\d[\d:.,]+)\s*-->\s*(\d[\d:.,]+)", line)
@@ -59,8 +62,20 @@ def load(path):
             cur = [parse_ts(m.group(1)), parse_ts(m.group(2)), []]
             cues.append(cur)
         elif cur is not None and line.strip() and not line.strip().isdigit():
-            cur[2].append(line.strip())
+            cur[2].append(re.sub(r"<[^>]+>", "", line).strip() if auto else line.strip())
+    if auto:
+        last = None
+        for c in cues:
+            c[2] = [t for t in c[2] if t]
+            while c[2] and c[2][0] == last: c[2].pop(0)  # the carried-over line from the cue before
+            if c[2]: last = c[2][-1]
     return [(a, b, " ".join(t)) for a, b, t in cues if t]
+
+def declared_lang(path):
+    """The language a WebVTT header names ("Language: es"), when it is English or Spanish."""
+    head = open(path, encoding="utf-8", errors="replace").read(2000)
+    m = re.search(r"^Language:\s*(en|es)\b", head, re.M | re.I)
+    return m.group(1).lower() if m else None
 
 def norm(t, rx=r"[^a-z ]"): return re.sub(rx, "", t.lower()).split()
 
@@ -74,7 +89,7 @@ def main():
     cues = load(a[0])
     if not cues: print("no cues found - is this an srt, vtt or whisper json?"); sys.exit(1)
     dur = cues[-1][1]
-    lang = lang or detect(" ".join(c[2] for c in cues))
+    lang = lang or declared_lang(a[0]) or detect(" ".join(c[2] for c in cues))
     FILLER = FILLER_ONLY_ES if lang == "es" else FILLER_ONLY
     keep_rx = r"[^a-záéíóúüñ ]" if lang == "es" else r"[^a-z ]"
     cuts = []

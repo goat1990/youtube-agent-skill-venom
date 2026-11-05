@@ -17,7 +17,7 @@ summariser.
 import json, os, re, sys
 # deadair.py here is a copy of yt-edit's, so this skill works when installed on its own.
 # tests/edge.py fails if the two copies ever differ.
-from deadair import load, parse_ts, detect, take_lang  # noqa: E402
+from deadair import load, parse_ts, detect, take_lang, declared_lang  # noqa: E402
 
 STOP = set("the a an of for to in on and or is are was were be been with this that it as at by from "
            "you your i my we our they them he she but so if then than there here what which who how "
@@ -51,7 +51,7 @@ def main():
     cues = load(a[0])
     if len(cues) < 6: print("too few cues to chapter"); sys.exit(1)
     dur = cues[-1][1]
-    lang = lang or detect(" ".join(c[2] for c in cues))
+    lang = lang or declared_lang(a[0]) or detect(" ".join(c[2] for c in cues))
     cand = []
     for i in range(1, len(cues)):
         gap = cues[i][0] - cues[i - 1][1]
