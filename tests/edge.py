@@ -177,7 +177,7 @@ def chapters_viral_retention_work_alone():
     return all(c == 0 for c, _ in r), ("; ".join(o.strip().splitlines()[-1][:60] for c, o in r if c)
                                         or "chapters, viral and retention each run from their own folder")
 
-@known
+@must
 def swipe_reads_ytdlp_output():
     """The skill says to collect with yt-dlp, whose file holds 'entries' and 'view_count'."""
     p = write("ytdlp.json", json.dumps({"channel": "X", "entries": [
@@ -186,11 +186,13 @@ def swipe_reads_ytdlp_output():
     n = len(json.loads(out)["outliers"]) if code == 0 else 0
     return n > 0, f"{n} videos read from a yt-dlp file"
 
-@known
+@must
 def swipe_views_written_as_text():
     p = write("text.json", json.dumps([{"channel": "A", "title": "t", "views": v} for v in ("1.2M", "900K", "45,000", "3000")]))
-    code, out = run("yt-viral", p)
-    return code == 0, "crash: " + out.strip().splitlines()[-1][:70] if code else "read"
+    code, out = run("yt-viral", "--json", "--min", "0", p)
+    if code: return False, "crash: " + out.strip().splitlines()[-1][:70]
+    views = sorted(r["views"] for r in json.loads(out)["outliers"])
+    return views == [3000, 45000, 900000, 1200000], f"read as {views}"
 
 @known
 def deadair_whisper_list_json():
