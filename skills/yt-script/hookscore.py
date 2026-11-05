@@ -157,6 +157,23 @@ FIX_ES = {
  "BREVITY": "de 9 a 24 palabras. Léelo en voz alta y corta donde te falte el aire",
 }
 
+def take(a, flag, cast=str):
+    """Pull `flag value` out of the argument list, in any position (None when absent). A missing or
+    bad value stops with a one-line message instead of a Python error."""
+    if flag not in a: return None
+    i = a.index(flag)
+    if i + 1 >= len(a) or a[i + 1].startswith("--"): sys.exit(f"{flag} needs a value")
+    v = a.pop(i + 1); a.pop(i)
+    try: return cast(v)
+    except ValueError: sys.exit(f"{flag} needs a number, got {v!r}")
+
+def first_file(a):
+    """The first argument that is not an option. Help when there is none, a clear stop when it is missing."""
+    files = [x for x in a if not x.startswith("--")]
+    if not files: print(__doc__); sys.exit(1)
+    if not os.path.exists(files[0]): sys.exit(f"file not found: {files[0]}")
+    return files[0]
+
 def main():
     a = sys.argv[1:]
     force = None
@@ -166,12 +183,11 @@ def main():
         if force == "auto": force = None
     as_json = "--json" in a
     a = [x for x in a if x != "--json"]
-    if "--hook" in a:
-        lines = [a[a.index("--hook") + 1]]
-    elif a and os.path.exists(a[0]):
-        lines = [l for l in open(a[0], encoding="utf-8").read().splitlines() if l.strip()]
+    hook = take(a, "--hook")
+    if hook is not None:
+        lines = [hook]
     else:
-        print(__doc__); sys.exit(1 if not a else 0)
+        lines = [l for l in open(first_file(a), encoding="utf-8").read().splitlines() if l.strip()]
     out = []
     for t in lines:
         lang = force or detect(t)
