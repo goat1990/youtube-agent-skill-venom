@@ -13,15 +13,26 @@ Tuesday; a 400k video on a channel whose median is 30k is the thing worth studyi
 is scored as a MULTIPLE OF ITS OWN CHANNEL'S MEDIAN, which needs at least four videos per channel
 to mean anything - the tool says so rather than quietly ranking on noise.
 
-The formula comes from skills/yt-script/hooks.json, matched against the TITLE. It is a judgement
+The formula comes from hooks.json (a copy of yt-script's, kept identical by tests/edge.py), matched against the TITLE. It is a judgement
 about the words on screen, not a claim about why the video worked.
 """
 import json, os, re, statistics, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FORMULAS = json.load(open(os.path.join(HERE, "..", "yt-script", "hooks.json"), encoding="utf-8"))["hooks"]
-sys.path.insert(0, os.path.join(HERE, "..", "yt-script"))
-from hookscore import detect  # noqa: E402  (one language detector for titles and hooks)
+FORMULAS = json.load(open(os.path.join(HERE, "hooks.json"), encoding="utf-8"))["hooks"]
+
+ES_HINT = {"el","la","los","las","de","del","que","en","un","una","y","por","para","con","es","se",
+           "lo","al","su","sus","tu","tus","te","nadie","más","pero","como","este","esta","son",
+           "hay","qué","cómo","sin"}
+EN_HINT = {"the","of","and","to","in","is","you","your","that","it","for","on","with","this","how",
+           "why","what","are","was","be","i","my","we","nobody","do","not"}
+
+def detect(t):
+    """'es' when the text reads as Spanish, otherwise 'en'. Ties go to English."""
+    w = re.findall(r"[a-záéíóúüñ']+", t.lower())
+    es = sum(1 for x in w if x in ES_HINT) + 2 * len(re.findall(r"[áéíóúñ¿¡]", t.lower()))
+    en = sum(1 for x in w if x in EN_HINT)
+    return "es" if es > en else "en"
 
 def classify(title):
     # a Spanish title is matched against the Spanish patterns of each formula

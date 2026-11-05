@@ -32,7 +32,7 @@ account credentials.
 ## Reading the output
 
 The multiple is the signal. The formula line is a judgement about the TITLE, matched against
-[the 21 formulas](../yt-script/hooks.json) - it is not a claim about why the video worked, and you
+[the 21 formulas](hooks.json) - it is not a claim about why the video worked, and you
 should say so when you present it.
 
 What to hand back: the top five with their multiples, the formula each used, and the ONE structural

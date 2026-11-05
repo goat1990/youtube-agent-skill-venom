@@ -15,8 +15,9 @@ the pause was and how much the vocabulary changes across it. It is a first draft
 summariser.
 """
 import json, os, re, sys
-sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "yt-edit"))
-from deadair import load, parse_ts, detect, take_lang  # noqa: E402  (same parser, one implementation)
+# deadair.py here is a copy of yt-edit's, so this skill works when installed on its own.
+# tests/edge.py fails if the two copies ever differ.
+from deadair import load, parse_ts, detect, take_lang  # noqa: E402
 
 STOP = set("the a an of for to in on and or is are was were be been with this that it as at by from "
            "you your i my we our they them he she but so if then than there here what which who how "

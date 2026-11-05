@@ -63,8 +63,7 @@ def main():
     slide = sum(mid) / len(mid) if mid else 0
     said = {}
     if tr and os.path.exists(tr):
-        sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "yt-edit"))
-        from deadair import load as load_cues
+        from deadair import load as load_cues  # a copy of yt-edit's, kept identical by tests/edge.py
         cues = load_cues(tr)
         for c in cliffs:
             if c["at_seconds"] is None: continue
