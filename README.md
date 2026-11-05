@@ -61,6 +61,8 @@ examples, not measured against real Spanish videos and their views.
 
 Checking a change: `python3 tests/run.py` runs every tool on English and Spanish samples and fails
 if any English output moved by one character.
+`python3 tests/edge.py` throws hard cases at every tool (empty, broken, huge, emoji, each skill on
+its own) and lists the known problems still open.
 
 ## The eleven
 
