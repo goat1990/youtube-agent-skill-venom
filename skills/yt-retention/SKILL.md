@@ -35,6 +35,11 @@ Name the single biggest leak and one change for it. Not a list of five. Then, on
 rest. And if the hook leak is healthy and the slide is flat, say the video is fine and the problem
 is packaging - send them to `/yt-package`.
 
+## Language
+
+Works the same on a Spanish video: the export is numbers, and `--transcript` quotes whatever was
+said in whatever language. Write the report in the user's language.
+
 ## The gate
 
 Nothing here publishes. This skill writes and you publish. Every output ends in a block the user

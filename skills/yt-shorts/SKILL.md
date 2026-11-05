@@ -30,6 +30,11 @@ reject one without reading the whole transcript.
 - **A loop point**: what the last line sets up so the first line answers it.
 - Vertical framing note - what gets cropped out of a 16:9 frame and whether that matters.
 
+## Language
+
+Write in the user's language. `hookscore.py` detects Spanish on its own when you score the new
+first line.
+
 ## The gate
 
 Nothing here publishes. This skill writes and you publish. Every output ends in a block the user

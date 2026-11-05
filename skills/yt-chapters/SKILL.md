@@ -33,6 +33,11 @@ that section, in the user's voice, three to five words.
 Chapters are also a retention diagnostic: if a section cannot be named in five words, it is two
 sections or it is filler.
 
+## Language
+
+Write in the user's language. `chapters.py` detects Spanish on its own and keeps accented words
+whole; `--lang es` forces it.
+
 ## The gate
 
 Nothing here publishes. This skill writes and you publish. Every output ends in a block the user

@@ -28,6 +28,9 @@ python3 hookscore.py --hook "one line"      # score a single one
    read it out loud.
 2. Never invent a number, a result or a source. If a figure would strengthen it and you do not have
    one, ask for it or write the line without it.
+3. **Language.** Write in the language the user writes in. The voice file works the same in
+   English or Spanish (`templates/voice.es.md` is the Spanish template). The tools detect Spanish on
+   their own; add `--lang es` when the text is too short to tell, like a single title.
 
 ## The shape
 
@@ -36,6 +39,7 @@ click the title promised, open a question the viewer cannot close, and prove the
 
 1. **Hook.** Write FIVE against [the 21 formulas](hooks.json), run them through `hookscore.py`,
    keep the top two, and show the user both with their scores. Never hand over one hook.
+   In Spanish, each formula also carries a Spanish example (`example_es`) to write against.
 2. **The turn** (0:15-0:45). Say what the video is going to do, in one sentence, and start doing it.
    No channel intro, no "before we get started", no subscribe pitch. Those are the single most
    common cause of the 0:30 cliff.

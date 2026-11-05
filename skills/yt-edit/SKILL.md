@@ -33,6 +33,11 @@ It does not touch media. It has no opinion about your B-roll. A 40% cut on the r
 of SPEECH, and if the video has a long silent demo in it that number is wrong - check the report
 against the footage before you trust the runtime at the bottom.
 
+## Language
+
+Write in the user's language. `deadair.py` detects Spanish on its own and then catches Spanish
+fillers ("eh", "este", "o sea", "pues", "bueno"); `--lang es` forces it.
+
 ## The gate
 
 Nothing here publishes. This skill writes and you publish. Every output ends in a block the user
