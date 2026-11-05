@@ -32,7 +32,7 @@ reject one without reading the whole transcript.
 
 ## Language
 
-Write in the user's language. `hookscore.py` detects Spanish on its own when you score the new
+Write in the user's language. `../yt-script/hookscore.py` detects Spanish on its own when you score the new
 first line.
 
 ## The gate

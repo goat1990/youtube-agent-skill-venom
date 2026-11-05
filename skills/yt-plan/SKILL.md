@@ -22,8 +22,8 @@ A plan that does not fit the week is a list of regrets. Ask two questions before
 2. Never invent a number, a result or a source. If a figure would strengthen it and you do not have
    one, ask for it or write the line without it.
 3. **Language.** Write in the language the user writes in. The voice file works the same in
-   English or Spanish (`templates/voice.es.md` is the Spanish template). The tools detect Spanish on
-   their own; add `--lang es` when the text is too short to tell, like a single title.
+   English or Spanish. The tools detect Spanish on their own; add `--lang es` when the text is too
+   short to tell, like a single title.
 
 ## The shape of a week
 
