@@ -19,6 +19,9 @@ An audit that lists twenty problems is a way of avoiding the one that matters. T
    read it out loud.
 2. Never invent a number, a result or a source. If a figure would strengthen it and you do not have
    one, ask for it or write the line without it.
+3. **Language.** Write in the language the user writes in. The voice file works the same in
+   English or Spanish. The tools detect Spanish on their own; add `--lang es` when the text is too
+   short to tell, like a single title.
 
 ## What to look at, in this order
 

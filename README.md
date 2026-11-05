@@ -47,6 +47,21 @@ Then spend ten minutes on [`templates/voice.md`](templates/voice.md). Copy it to
 my voice.md from these". Every skill reads that file. It matters more here than anywhere else,
 because you have to say the words out loud.
 
+## English y español
+
+The pack is bilingual. Talk to Claude in Spanish and every skill answers in Spanish; the tools
+detect Spanish on their own and switch to Spanish word lists, fillers ("eh", "este", "o sea") and
+the Spanish example and patterns each of the 21 formulas carries. Add `--lang es` (or `en`) to
+force a language when the text is too short to tell, like a single title. English results are
+exactly what they were before Spanish was added. The Spanish voice template is
+[`templates/voice.es.md`](templates/voice.es.md).
+
+One honest limit: the Spanish hook scores were tuned to match the English ones on translated
+examples, not measured against real Spanish videos and their views.
+
+Checking a change: `python3 tests/run.py` runs every tool on English and Spanish samples and fails
+if any English output moved by one character.
+
 ## The eleven
 
 | command | what it does |

@@ -39,6 +39,11 @@ What to hand back: the top five with their multiples, the formula each used, and
 thing they share. Then the harder line - which of those the user could actually make this week, in
 their voice, with what they have.
 
+## Language
+
+Write in the user's language. A Spanish title is matched against each formula's Spanish patterns
+automatically.
+
 ## The gate
 
 Nothing here publishes. This skill writes and you publish. Every output ends in a block the user
