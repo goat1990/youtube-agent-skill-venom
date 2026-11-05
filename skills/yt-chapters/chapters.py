@@ -88,8 +88,9 @@ def main():
     for n, t in enumerate(picked):
         end = picked[n + 1] if n + 1 < len(picked) else dur
         text = " ".join(c[2] for c in cues if c[0] >= t and c[1] <= end)
-        kw = [w for w in keywords(text, lang)]
-        kw.sort(key=lambda w: -text.lower().count(w))
+        low = text.lower()
+        # most frequent first; a tie goes to the word said first, so the same file gives the same titles
+        kw = sorted(keywords(text, lang), key=lambda w: (-low.count(w), low.find(w), w))
         title = " ".join(w.capitalize() for w in kw[:3]) or "Section"
         chapters.append({"start": round(t, 2), "label": mmss(t), "draft_title": title,
                          "seconds": round(end - t, 2)})

@@ -240,7 +240,7 @@ def missing_file_is_an_error():
     code, _ = run("yt-script", "no-such-file.txt")
     return code != 0, f"exit {code} for a file that does not exist"
 
-@known
+@must
 def chapter_titles_same_every_run():
     p = write("same.srt", srt([(i * 12, i * 12 + 10, f"part {i} talks about thing{i} and topic{i}") for i in range(8)]))
     outs = set()
