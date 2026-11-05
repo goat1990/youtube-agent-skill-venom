@@ -112,6 +112,37 @@ def hooks_lang_option():
     bad = run([HOOK, "--lang", "fr", "--hook", "x"], EN)
     return forced[0].get("lang") == "es" and bad.startswith("exit=1"), "--lang es forces Spanish, --lang fr is refused"
 
+def jrun(argv, cwd): return json.loads(run(argv, cwd).split("\n", 1)[1])
+
+@check
+def titles_spanish_vague_words():
+    rows = jrun([TITLE, "titles.txt", "--json"], ES)
+    vague = [r for r in rows if any(k == "vague" for k, _ in r["issues"])]
+    return [r["title"][:22] for r in vague] == ["Lugares increíbles y m"] and all(r.get("lang") == "es" for r in rows), \
+        f"vague flagged on {[r['title'][:22] for r in vague]}"
+
+@check
+def deadair_spanish_fillers_and_restart():
+    out = jrun([DEAD, "transcript.srt", "--json"], ES)
+    kinds = {(c["kind"], c["why"]) for c in out["cuts"] if c["kind"] != "DEAD"}
+    want = {("FILLER", "eh"), ("FILLER", "o sea, este"), ("REPEAT", 'restart of "hoy te voy a mostrar"')}
+    return kinds == want and out.get("lang") == "es", f"found {sorted(kinds)}"
+
+@check
+def chapters_spanish_keeps_accents():
+    out = jrun([CHAP, "transcript.srt", "--target", "4", "--json"], ES)
+    spoken = set(open(os.path.join(ES, "transcript.srt"), encoding="utf-8").read().lower().split())
+    spoken = {w.strip(".,") for w in spoken}
+    titles = [w.lower() for c in out["chapters"] for w in c["draft_title"].split()]
+    cut = [w for w in titles if w not in spoken]
+    return out["valid"] and not cut and out.get("lang") == "es", f"{len(titles)} title words, cut short: {cut}"
+
+@check
+def swipe_spanish_formula():
+    out = jrun([SWIPE, "collected.json", "--min", "2.0", "--json"], ES)["outliers"]
+    pueblo = next(r for r in out if r["title"].startswith("Este pueblo"))
+    return pueblo["formula"] == "Someone Else's Result", f"Spanish outlier labelled {pueblo['formula']}"
+
 def spanish():
     fails = 0
     for fn in SPANISH:

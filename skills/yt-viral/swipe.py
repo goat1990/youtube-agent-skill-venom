@@ -19,12 +19,16 @@ about the words on screen, not a claim about why the video worked.
 import json, os, re, statistics, sys
 
 HERE = os.path.dirname(os.path.abspath(__file__))
-FORMULAS = json.load(open(os.path.join(HERE, "..", "yt-script", "hooks.json")))["hooks"]
+FORMULAS = json.load(open(os.path.join(HERE, "..", "yt-script", "hooks.json"), encoding="utf-8"))["hooks"]
+sys.path.insert(0, os.path.join(HERE, "..", "yt-script"))
+from hookscore import detect  # noqa: E402  (one language detector for titles and hooks)
 
 def classify(title):
+    # a Spanish title is matched against the Spanish patterns of each formula
+    key = "match_es" if detect(title) == "es" else "match"
     scored = []
     for f in FORMULAS:
-        n = sum(1 for p in f["match"] if re.search(p, title, re.I))
+        n = sum(1 for p in f.get(key, []) if re.search(p, title, re.I))
         if n: scored.append((n, f["name"]))
     scored.sort(reverse=True)
     return scored[0][1] if scored else "Unclassified"
@@ -35,7 +39,7 @@ def main():
     lo = float(a[a.index("--min") + 1]) if "--min" in a else 1.5
     files = [x for x in a if not x.startswith("--") and not re.match(r"^[\d.]+$", x)]
     if not files or not os.path.exists(files[0]): print(__doc__); sys.exit(1)
-    rows = json.load(open(files[0]))
+    rows = json.load(open(files[0], encoding="utf-8"))
     if isinstance(rows, dict): rows = rows.get("videos", [])
     by = {}
     for r in rows: by.setdefault(r.get("channel", "?"), []).append(r)
