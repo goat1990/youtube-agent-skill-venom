@@ -1,1 +1,2 @@
 test: python3 tests/run.py
+edge: python3 tests/edge.py
