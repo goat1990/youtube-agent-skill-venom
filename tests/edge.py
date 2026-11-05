@@ -212,12 +212,14 @@ def deadair_youtube_auto_captions():
     fillers = [c["why"] for c in json.loads(out)["cuts"] if c["kind"] == "FILLER"]
     return fillers == ["eh bueno"], f"fillers found: {fillers}"
 
-@known
+@must
 def retention_semicolon_decimal_comma_csv():
     """Not confirmed that a Spanish-language Studio exports this way; spreadsheets do."""
     rows = "".join(f"{x};{100 - x * 0.6:.1f}\n".replace(".", ",") for x in range(0, 101, 5))
-    code, out = run("yt-retention", write("es.csv", "Posición (%);Retención (%)\n" + rows))
-    return code == 0, out.strip().splitlines()[-1][:70]
+    code, out = run("yt-retention", "--json", write("es.csv", "Posición (%);Retención (%)\n" + rows))
+    if code: return False, out.strip().splitlines()[-1][:70]
+    r = json.loads(out)
+    return r["points"] == 21 and r["end"] == 40.0, f"{r['points']} points, ends at {r['end']}%"
 
 @known
 def options_in_any_order():
