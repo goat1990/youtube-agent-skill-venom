@@ -194,20 +194,23 @@ def swipe_views_written_as_text():
     views = sorted(r["views"] for r in json.loads(out)["outliers"])
     return views == [3000, 45000, 900000, 1200000], f"read as {views}"
 
-@known
+@must
 def deadair_whisper_list_json():
     p = write("wl.json", json.dumps([{"start": 0, "end": 2, "text": "um"}, {"start": 3, "end": 5, "text": "hello there"}]))
-    code, out = run("yt-edit", p)
-    return code == 0, out.strip().splitlines()[-1][:70]
+    code, out = run("yt-edit", "--json", p)
+    if code: return False, out.strip().splitlines()[-1][:70]
+    kinds = sorted(c["kind"] for c in json.loads(out)["cuts"])
+    return kinds == ["DEAD", "FILLER"], f"cuts {kinds}"
 
-@known
+@must
 def deadair_youtube_auto_captions():
     """YouTube's own auto-caption file wraps words in timing tags, which hides fillers."""
     vtt = ("WEBVTT\nKind: captions\nLanguage: es\n\n"
            "00:00:00.000 --> 00:00:02.000\nhola<00:00:00.500><c> a</c><00:00:00.900><c> todos</c>\n\n"
            "00:00:03.000 --> 00:00:04.000\neh<00:00:03.500><c> bueno</c>\n")
     code, out = run("yt-edit", "--json", write("auto.vtt", vtt))
-    return any(c["kind"] == "FILLER" for c in json.loads(out)["cuts"]), "filler hidden inside timing tags"
+    fillers = [c["why"] for c in json.loads(out)["cuts"] if c["kind"] == "FILLER"]
+    return fillers == ["eh bueno"], f"fillers found: {fillers}"
 
 @known
 def retention_semicolon_decimal_comma_csv():
