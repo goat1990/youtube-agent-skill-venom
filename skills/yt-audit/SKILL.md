@@ -36,6 +36,9 @@ An audit that lists twenty problems is a way of avoiding the one that matters. T
    month is worse than one a fortnight forever.
 5. **The retention shape**, if they can export it. `/yt-retention`.
 
+Both tools live in other skills of this pack. Installed on its own, without `yt-package` and
+`yt-script` next to it, they are not there: install those two too.
+
 ## What to hand back
 
 - The single biggest fix, named, with what to do this week.

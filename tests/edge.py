@@ -152,6 +152,15 @@ def three_skills_work_alone():
         ok.append(run(s, *args, skills=os.path.join(alone, s))[0] == 0)
     return all(ok), "hook scorer, title linter and edit list each run from their own folder"
 
+@must
+def shared_copies_are_identical():
+    """Three skills carry a copy of another skill's file so they work alone. Copies must not drift."""
+    pairs = [("yt-edit/deadair.py", "yt-chapters/deadair.py"), ("yt-edit/deadair.py", "yt-retention/deadair.py"),
+             ("yt-script/hooks.json", "yt-viral/hooks.json")]
+    drift = [f"copy {a} over {b}" for a, b in pairs
+             if open(os.path.join(SK, a), "rb").read() != open(os.path.join(SK, b), "rb").read()]
+    return not drift, "; ".join(drift) or "3 copies match their originals"
+
 # ---------------------------------------------------------------- KNOWN: found, not fixed yet
 
 def alone(skill, *args):
@@ -159,13 +168,14 @@ def alone(skill, *args):
     if not os.path.exists(d): shutil.copytree(os.path.join(SK, skill), os.path.join(d, skill))
     return run(skill, *args, skills=d)
 
-@known
+@must
 def chapters_viral_retention_work_alone():
     """Uploaded alone (as claude.ai Skills does), they look for files in another skill's folder."""
     p = write("ch.srt", srt([(i * 12, i * 12 + 10, f"part {i} talks about thing{i} and topic{i}") for i in range(8)]))
     r = [alone("yt-chapters", p), alone("yt-viral", write("v.json", "[]")),
          alone("yt-retention", write("r.csv", "".join(f"{x},{100 - x}\n" for x in range(10))), "--transcript", p)]
-    return all(c == 0 for c, _ in r), "; ".join(o.strip().splitlines()[-1][:60] for c, o in r if c)
+    return all(c == 0 for c, _ in r), ("; ".join(o.strip().splitlines()[-1][:60] for c, o in r if c)
+                                        or "chapters, viral and retention each run from their own folder")
 
 @known
 def swipe_reads_ytdlp_output():
