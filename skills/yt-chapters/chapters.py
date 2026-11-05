@@ -41,13 +41,30 @@ def mmss(t):
     t = int(t); h, m, s = t // 3600, (t % 3600) // 60, t % 60
     return f"{h}:{m:02d}:{s:02d}" if h else f"{m}:{s:02d}"
 
+def take(a, flag, cast=str):
+    """Pull `flag value` out of the argument list, in any position (None when absent). A missing or
+    bad value stops with a one-line message instead of a Python error."""
+    if flag not in a: return None
+    i = a.index(flag)
+    if i + 1 >= len(a) or a[i + 1].startswith("--"): sys.exit(f"{flag} needs a value")
+    v = a.pop(i + 1); a.pop(i)
+    try: return cast(v)
+    except ValueError: sys.exit(f"{flag} needs a number, got {v!r}")
+
+def first_file(a):
+    """The first argument that is not an option. Help when there is none, a clear stop when it is missing."""
+    files = [x for x in a if not x.startswith("--")]
+    if not files: print(__doc__); sys.exit(1)
+    if not os.path.exists(files[0]): sys.exit(f"file not found: {files[0]}")
+    return files[0]
+
 def main():
     a = sys.argv[1:]
     lang = take_lang(a)
     as_json = "--json" in a; a = [x for x in a if x != "--json"]
-    target = int(a[a.index("--target") + 1]) if "--target" in a else 7
-    a = [x for x in a if not x.startswith("--") and not x.isdigit()]
-    if not a or not os.path.exists(a[0]): print(__doc__); sys.exit(1)
+    target = take(a, "--target", int)
+    if target is None: target = 7
+    a = [first_file(a)]
     cues = load(a[0])
     if len(cues) < 6: print("too few cues to chapter"); sys.exit(1)
     dur = cues[-1][1]

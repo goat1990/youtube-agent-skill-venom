@@ -221,20 +221,21 @@ def retention_semicolon_decimal_comma_csv():
     r = json.loads(out)
     return r["points"] == 21 and r["end"] == 40.0, f"{r['points']} points, ends at {r['end']}%"
 
-@known
+@must
 def options_in_any_order():
     secs = write("o.csv", "".join(f"{x},{100 - x * 0.08:.1f}\n" for x in range(0, 601, 20)))
     titles = write("t.txt", "Mi título\n")
     r = [run("yt-retention", "--duration", "600", secs), run("yt-package", "--thumb", "HOLA", titles)]
-    return all(c == 0 for c, _ in r), "option before the file prints the help instead of running"
+    return all(c == 0 for c, _ in r), ("options before the file run like options after it" if all(c == 0 for c, _ in r)
+                                        else "option before the file prints the help instead of running")
 
-@known
+@must
 def missing_option_value_is_explained():
     r = [run("yt-script", "--hook"), run("yt-package", "--title", "x", "--thumb"),
          run("yt-edit", "--floor", "abc", write("f.srt", srt([(0, 2, "hola")])))]
     return not any(crashed(o) for _, o in r), f"{sum(crashed(o) for _, o in r)} of 3 end in a Python error"
 
-@known
+@must
 def missing_file_is_an_error():
     code, _ = run("yt-script", "no-such-file.txt")
     return code != 0, f"exit {code} for a file that does not exist"

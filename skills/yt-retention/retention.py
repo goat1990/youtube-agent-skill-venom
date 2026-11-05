@@ -37,18 +37,33 @@ def load_csv(path):
             if len(vals) >= 2: rows.append((vals[0], vals[1]))
     return rows
 
+def take(a, flag, cast=str):
+    """Pull `flag value` out of the argument list, in any position (None when absent). A missing or
+    bad value stops with a one-line message instead of a Python error."""
+    if flag not in a: return None
+    i = a.index(flag)
+    if i + 1 >= len(a) or a[i + 1].startswith("--"): sys.exit(f"{flag} needs a value")
+    v = a.pop(i + 1); a.pop(i)
+    try: return cast(v)
+    except ValueError: sys.exit(f"{flag} needs a number, got {v!r}")
+
+def first_file(a):
+    """The first argument that is not an option. Help when there is none, a clear stop when it is missing."""
+    files = [x for x in a if not x.startswith("--")]
+    if not files: print(__doc__); sys.exit(1)
+    if not os.path.exists(files[0]): sys.exit(f"file not found: {files[0]}")
+    return files[0]
+
 def main():
     a = sys.argv[1:]
     as_json = "--json" in a; a = [x for x in a if x != "--json"]
-    tr = a[a.index("--transcript") + 1] if "--transcript" in a else None
-    files = [x for x in a if not x.startswith("--") and x != tr]
-    if not files or not os.path.exists(files[0]): print(__doc__); sys.exit(1)
+    tr, dur = take(a, "--transcript"), take(a, "--duration", float)
+    if tr and not os.path.exists(tr): sys.exit(f"file not found: {tr}")
+    files = [first_file(a)]
     rows = load_csv(files[0])
     if len(rows) < 8: print("could not read at least 8 data points from that csv"); sys.exit(1)
     xs = [r[0] for r in rows]; ys = [r[1] for r in rows]
     pct_axis = max(xs) <= 100.5
-    dur = None
-    if "--duration" in a: dur = float(a[a.index("--duration") + 1])
     def at(x): return (x / 100.0 * dur) if (pct_axis and dur) else x
     start = ys[0] or 100.0
     # HOOK: the first 30 seconds, or the first 10% when the axis is a percentage and we have no duration

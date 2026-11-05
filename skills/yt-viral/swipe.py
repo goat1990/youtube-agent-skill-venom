@@ -87,12 +87,29 @@ def normalize(rows):
         out.append(dict(r, views=n, channel=r.get("channel") or r.get("uploader") or own or "?"))
     return out, unread
 
+def take(a, flag, cast=str):
+    """Pull `flag value` out of the argument list, in any position (None when absent). A missing or
+    bad value stops with a one-line message instead of a Python error."""
+    if flag not in a: return None
+    i = a.index(flag)
+    if i + 1 >= len(a) or a[i + 1].startswith("--"): sys.exit(f"{flag} needs a value")
+    v = a.pop(i + 1); a.pop(i)
+    try: return cast(v)
+    except ValueError: sys.exit(f"{flag} needs a number, got {v!r}")
+
+def first_file(a):
+    """The first argument that is not an option. Help when there is none, a clear stop when it is missing."""
+    files = [x for x in a if not x.startswith("--")]
+    if not files: print(__doc__); sys.exit(1)
+    if not os.path.exists(files[0]): sys.exit(f"file not found: {files[0]}")
+    return files[0]
+
 def main():
     a = sys.argv[1:]
     as_json = "--json" in a; a = [x for x in a if x != "--json"]
-    lo = float(a[a.index("--min") + 1]) if "--min" in a else 1.5
-    files = [x for x in a if not x.startswith("--") and not re.match(r"^[\d.]+$", x)]
-    if not files or not os.path.exists(files[0]): print(__doc__); sys.exit(1)
+    lo = take(a, "--min", float)
+    if lo is None: lo = 1.5
+    files = [first_file(a)]
     rows, unread = normalize(json.load(open(files[0], encoding="utf-8")))
     by = {}
     for r in rows: by.setdefault(r.get("channel", "?"), []).append(r)
