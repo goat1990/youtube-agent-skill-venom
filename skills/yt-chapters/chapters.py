@@ -3,6 +3,7 @@
 
     python3 chapters.py transcript.srt            # or .vtt / whisper .json
     python3 chapters.py transcript.srt --target 8 --json
+    python3 chapters.py transcript.srt --lang es   # force Spanish (default: detected from the words)
 
 Prints a description block you can paste straight under a video. YouTube's own rules, enforced here
 rather than assumed: the list must start at 00:00, needs at least three entries, and each chapter
@@ -15,14 +16,24 @@ summariser.
 """
 import json, os, re, sys
 sys.path.insert(0, os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "yt-edit"))
-from deadair import load, parse_ts  # noqa: E402  (same parser, one implementation)
+from deadair import load, parse_ts, detect, take_lang  # noqa: E402  (same parser, one implementation)
 
 STOP = set("the a an of for to in on and or is are was were be been with this that it as at by from "
            "you your i my we our they them he she but so if then than there here what which who how "
            "when where why not no yes do does did just really very like about into over out up down "
            "can could will would should have has had get got make made go going went one two".split())
 
-def keywords(text):
+# Spanish function words of four letters or more (shorter ones never reach the keyword list).
+STOP_ES = set("para como este esta estos estas pero porque cuando donde desde hasta sobre entre todo "
+              "todos toda todas también ahora aquí allí hacia sino cual cuál quien quién ellos ellas "
+              "nosotros ustedes usted tiene tienen tener hace hacer hizo puede pueden poder vamos está "
+              "están estar eran fueron sido será sería había mismo misma otro otra otros otras cada "
+              "solo sólo bien algo nada mucho muchos mucha muchas poco pocos entonces luego después "
+              "antes mientras aunque según hablemos veces cosa cosas última último".split())
+
+def keywords(text, lang="en"):
+    if lang == "es":
+        return {w for w in re.findall(r"[a-záéíóúüñ']{4,}", text.lower()) if w not in STOP_ES}
     return {w for w in re.findall(r"[a-z']{4,}", text.lower()) if w not in STOP}
 
 def mmss(t):
@@ -31,6 +42,7 @@ def mmss(t):
 
 def main():
     a = sys.argv[1:]
+    lang = take_lang(a)
     as_json = "--json" in a; a = [x for x in a if x != "--json"]
     target = int(a[a.index("--target") + 1]) if "--target" in a else 7
     a = [x for x in a if not x.startswith("--") and not x.isdigit()]
@@ -38,12 +50,13 @@ def main():
     cues = load(a[0])
     if len(cues) < 6: print("too few cues to chapter"); sys.exit(1)
     dur = cues[-1][1]
+    lang = lang or detect(" ".join(c[2] for c in cues))
     cand = []
     for i in range(1, len(cues)):
         gap = cues[i][0] - cues[i - 1][1]
         before = " ".join(c[2] for c in cues[max(0, i - 12):i])
         after = " ".join(c[2] for c in cues[i:i + 12])
-        kb, ka = keywords(before), keywords(after)
+        kb, ka = keywords(before, lang), keywords(after, lang)
         shift = 1 - (len(kb & ka) / len(kb | ka)) if (kb | ka) else 0
         cand.append((gap * 1.6 + shift * 3.2, cues[i][0], i))
     cand.sort(reverse=True)
@@ -57,14 +70,16 @@ def main():
     for n, t in enumerate(picked):
         end = picked[n + 1] if n + 1 < len(picked) else dur
         text = " ".join(c[2] for c in cues if c[0] >= t and c[1] <= end)
-        kw = [w for w in keywords(text)]
+        kw = [w for w in keywords(text, lang)]
         kw.sort(key=lambda w: -text.lower().count(w))
         title = " ".join(w.capitalize() for w in kw[:3]) or "Section"
         chapters.append({"start": round(t, 2), "label": mmss(t), "draft_title": title,
                          "seconds": round(end - t, 2)})
     ok = len(chapters) >= 3 and chapters[0]["start"] == 0 and all(c["seconds"] >= MIN for c in chapters)
     if as_json:
-        print(json.dumps({"valid": ok, "chapters": chapters}, indent=1)); return
+        out = {"valid": ok, "chapters": chapters}
+        if lang == "es": out["lang"] = "es"
+        print(json.dumps(out, indent=1)); return
     print()
     for c in chapters: print(f"  {c['label']} {c['draft_title']}")
     print(f"\n  {len(chapters)} chapters"
