@@ -22,10 +22,15 @@ import csv, json, os, re, sys
 def load_csv(path):
     rows = []
     with open(path, newline="", encoding="utf-8-sig", errors="replace") as fh:
-        for r in csv.reader(fh):
+        head = fh.read(4096); fh.seek(0)
+        # Spreadsheets set to Spanish (and most of Europe) save with ";" between columns and a
+        # decimal comma: "12;87,5". Otherwise a comma separates columns or thousands, as before.
+        semi = head.count(";") > head.count(",") / 2 and ";" in head
+        for r in csv.reader(fh, delimiter=";" if semi else ","):
             nums = []
             for c in r:
-                c = c.strip().replace("%", "").replace(",", "")
+                c = c.strip().replace("%", "")
+                c = c.replace(".", "").replace(",", ".") if semi else c.replace(",", "")
                 try: nums.append(float(c))
                 except ValueError: nums.append(None)
             vals = [n for n in nums if n is not None]
