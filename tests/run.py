@@ -44,8 +44,7 @@ EN_CASES = [
 ]
 
 def run(argv, cwd):
-    # chapters.py breaks ties between title words in set order, which Python shuffles per run.
-    # A fixed hash seed makes that order repeatable so the output can be compared at all.
+    # A fixed hash seed keeps any set ordering repeatable, so outputs can be compared exactly.
     env = dict(os.environ, PYTHONHASHSEED="0")
     p = subprocess.run([sys.executable] + argv, cwd=cwd, env=env, capture_output=True, text=True)
     return f"exit={p.returncode}\n{p.stdout}{p.stderr}"
