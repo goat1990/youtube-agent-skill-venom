@@ -174,6 +174,17 @@ def es_mystery_words_count():
     return all(x > 22 for x in stakes) and new > old > greeting, \
         f"stakes {stakes}; rewritten hook {new} > current {old} > greeting {greeting}"
 
+@check
+def es_title_speaks_spanish_and_catches_plural_repeat():
+    """The script's title and thumbnail: the warnings come in Spanish, and PROHIBIDO repeats 'prohibidos'."""
+    r = jrun([TITLE, "--title", "10 lugares prohibidos a los que nunca podrás entrar",
+              "--thumb", "PROHIBIDO ENTRAR", "--json"], ES)[0]
+    dup = next((m for k, m in r["issues"] if k == "duplicate"), "")
+    english = any("characters" in m or "thumbnail" in m for _, m in r["issues"]) or any("characters" in g for g in r["good"])
+    spelled = jrun([TITLE, "--lang", "es", "--title", "Diez lugares prohibidos del mundo", "--json"], ES)[0]
+    return "prohibidos" in dup and not english and not any(k == "no-number" for k, _ in spelled["issues"]), \
+        f"duplicate: {dup[:60]!r}; spelled-out number counts: {not any(k == 'no-number' for k, _ in spelled['issues'])}"
+
 def spanish():
     fails = 0
     for fn in SPANISH:
