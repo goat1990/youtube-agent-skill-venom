@@ -163,6 +163,17 @@ def es_distance_is_not_the_clock():
     name = h.score(guion()[1].replace("cinco", "5"), "es")[2]
     return name != "The Clock", f"classified as {name}"
 
+@check
+def es_mystery_words_count():
+    """Forbidden, deadly, hidden: the stakes of a mystery channel count, and the rewritten hook beats the old one."""
+    h = hookscore_module()
+    g = guion()
+    stakes = [h.score(l, "es")[0]["STAKES"] for l in (g[2], g[3])]
+    old, new = h.score(g[0], "es")[1], h.score(g[1], "es")[1]
+    greeting = h.score("Hola chicos bienvenidos al canal, hoy vamos a hablar de algo increíble.", "es")[1]
+    return all(x > 22 for x in stakes) and new > old > greeting, \
+        f"stakes {stakes}; rewritten hook {new} > current {old} > greeting {greeting}"
+
 def spanish():
     fails = 0
     for fn in SPANISH:
