@@ -41,7 +41,15 @@ FILLER_ES = {"básicamente","literalmente","realmente","solo","sólo","muy","pue
 VAGUE_ES = {"increíble","increíbles","impresionante","brutal","loco","locura","enorme","masivo",
             "secreto","poderoso","definitivo","mejor","revolucionario","alucinante","flipante",
             "épico","épica","impactante"}
-CONCRETE_ES = re.compile(r"\b(\d[\d,.]*\s?(%|k|m|x|s|m|h)?|\$\d|\d+\s?(segundo|minuto|hora|d[ií]a|semana|mes|año)(s|es)?)\b", re.I)
+# Numbers written as words count like digits ("cinco kilómetros" = "5 kilómetros"): scripts for an AI
+# voice spell them out so the voice reads them right. A run like "treinta y tres" counts once.
+# "un", "una" and "uno" are left out because they are mostly articles.
+NUM_WORD = (r"(?:dos|tres|cuatro|cinco|seis|siete|ocho|nueve|diez|once|doce|trece|catorce|quince"
+            r"|diec?i\w+|veinte|veinti\w+|treinta|cuarenta|cincuenta|sesenta|setenta|ochenta|noventa"
+            r"|cien|ciento|cientos|doscient\w+|trescient\w+|cuatrocient\w+|quinient\w+|seiscient\w+"
+            r"|setecient\w+|ochocient\w+|novecient\w+|mil|millón|millones)")
+CONCRETE_ES = re.compile(r"\b(\d[\d,.]*\s?(%|k|m|x|s|m|h)?|\$\d|\d+\s?(segundo|minuto|hora|d[ií]a|semana|mes|año)(s|es)?"
+                         r"|" + NUM_WORD + r"(?:\s+(?:y\s+)?" + NUM_WORD + r")*)\b", re.I)
 # Spanish often drops "tú" and puts the person in the verb, so common second-person verbs count too.
 YOU_ES = re.compile(r"\b(t[uú]|tus?|te|ti|contigo|usted(es)?|vos|puedes|tienes|sabes|quieres|necesitas"
                     r"|vas|eres|est[aá]s|haces|ves|crees|sigues|deber[ií]as|imagina|mira)\b", re.I)

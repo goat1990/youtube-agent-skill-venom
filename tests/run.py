@@ -142,6 +142,27 @@ def swipe_spanish_formula():
     pueblo = next(r for r in out if r["title"].startswith("Este pueblo"))
     return pueblo["formula"] == "Someone Else's Result", f"Spanish outlier labelled {pueblo['formula']}"
 
+# Lines from the first Enigma Norte script (tests/fixtures/es/guion01.txt), the first real Spanish run.
+GUION = os.path.join(ES, "guion01.txt")
+
+def guion(): return [l for l in open(GUION, encoding="utf-8").read().splitlines() if l.strip()]
+
+@check
+def es_number_words_count_like_digits():
+    """The script spells numbers out for the AI voice: "cinco kilómetros" must score like "5 kilómetros"."""
+    h = hookscore_module()
+    line = guion()[1]
+    words, digits = h.score(line, "es")[1], h.score(line.replace("cinco", "5"), "es")[1]
+    tons = h.score(guion()[4], "es")[0]["SPECIFICITY"]
+    return words == digits and tons > 34, f"words {words} vs digits {digits}; tons line specificity {tons}"
+
+@check
+def es_distance_is_not_the_clock():
+    """'a menos de cinco kilómetros' is a distance, not 'in the next 5 minutes'."""
+    h = hookscore_module()
+    name = h.score(guion()[1].replace("cinco", "5"), "es")[2]
+    return name != "The Clock", f"classified as {name}"
+
 def spanish():
     fails = 0
     for fn in SPANISH:

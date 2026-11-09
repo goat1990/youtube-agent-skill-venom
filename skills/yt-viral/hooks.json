@@ -131,7 +131,7 @@
    "match_es": [
     "\\ben (los pr[oó]ximos )?\\d+ (segundos|minutos|horas)\\b",
     "\\bal final de este video\\b",
-    "\\bmenos de \\d+\\b",
+    "\\bmenos de \\d+ (segundos|minutos|horas)\\b",
     "\\ben los pr[oó]ximos\\b"
    ]
   },
