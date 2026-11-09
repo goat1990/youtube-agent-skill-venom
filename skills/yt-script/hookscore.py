@@ -55,10 +55,17 @@ YOU_ES = re.compile(r"\b(t[uú]|tus?|te|ti|contigo|usted(es)?|vos|puedes|tienes|
                     r"|vas|eres|est[aá]s|haces|ves|crees|sigues|deber[ií]as|imagina|mira)\b", re.I)
 STAKE_ES = re.compile(r"\b(perder|pierdes|perdiste|perdido|desperdici\w*|renunci\w*|abandon\w*|deja|dejan"
                       r"|fracas\w*|quiebra|cuesta|costar|riesgo|peligro\w*|antes|nunca|morir|muere"
-                      r"|mueren|murieron|muert[oa]s?|mortal)\b", re.I)
+                      r"|mueren|murieron|muert[oa]s?|mortal"
+                      # what is at stake in a mystery or danger story: forbidden, deadly, closed, caught
+                      r"|prohibid\w*|ilegal\w*|venenos\w*|letal\w*|restringid\w*|cerrad[oa]s?|detien\w*"
+                      r"|deten\w*|arrest\w*|dispar\w*|flechas?|desapareci\w*|desaparec\w*|sobreviv\w*"
+                      r"|atrapad\w*|extinci[oó]n)\b", re.I)
 # "que" without an accent is a plain connector in Spanish, so only the accented question words count.
 CURIOSITY_ES = re.compile(r"(\bpor qu[eé]\b|\bcómo\b|\bqué\b|\bcuál(es)?\b|\bhasta\b|\bantes\b|\bpero\b"
-                          r"|\bnadie\b|\bcasi\b|\bexcepto\b|\bsalvo\b|\braz[oó]n\b|\ben realidad\b)", re.I)
+                          r"|\bnadie\b|\bcasi\b|\bexcepto\b|\bsalvo\b|\braz[oó]n\b|\ben realidad\b"
+                          # the open questions a mystery runs on: hidden, unexplained, refused
+                          r"|\bmisterio\w*|\benigma\w*|\binexplicable\w*|\bexplicar\b|\bescond\w*|\bocult\w*"
+                          r"|\bse niega\w*|\btodav[ií]a\b|\baún\b)", re.I)
 CLOSED_ES = re.compile(r"\b(porque|as[ií] que|lo que significa)\b", re.I)
 
 LANGS = {
